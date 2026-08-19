@@ -33,6 +33,17 @@ python3 cli.py compile workflow.json -o out.ir.json
 5. **提交信息**：Conventional Commits（`feat:` / `fix:` / `refactor:` / `docs:` /
    `test:` / `chore:` + 中文描述），一次提交一个关注点。
 
+## CI 与 n8n 快照策略
+
+CI 的 matrix 层通过 sparse-checkout 拉取 **n8n master 滚动快照** 的测试夹具，
+而 `test_batch_matrix.py` 的 143 工作流断言固化于 2026-08-18 快照。若 n8n
+master 删除/重命名夹具文件导致 PASS/CYCLIC 集合失配，CI 会红——这是**预期信号**：
+
+1. 先确认失配是 n8n 上游变更而非本编译器回归（对比失败集合与新增/删除文件）。
+2. 确认后**显式更新断言**并注明所依据的 n8n commit 或日期（沿用"矩阵不回退"纪律）。
+3. 需要完全可复现时，把 sparse-checkout 固定到具体 commit/tag（在 CI 中加
+   `ref:` 参数），默认跟随 master 以持续暴露上游变化。
+
 ## 测试分层
 
 | 层 | 依赖 | 说明 |
