@@ -19,3 +19,14 @@ build/
 
 # Local scratch
 *.local
+
+# Coverage / lint caches
+.coverage
+htmlcov/
+.ruff_cache/
+.pytest_cache/
+
+# Packaging
+*.egg-info/
+dist/
+build/

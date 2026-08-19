@@ -1,9 +1,51 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "n8n-compiler"
 version = "0.1.0"
-description = "n8n Workflow AOT compiler frontend: n8n Workflow JSON -> strongly-typed AST -> checker -> typed IR v1"
-requires-python = ">=3.9"
-license = { text = "MIT" }
+description = "AOT compiler for n8n workflows: n8n Workflow JSON -> strongly-typed AST -> checker -> typed IR v2"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+keywords = ["n8n", "workflow", "compiler", "aot", "static-analysis", "ast"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Compilers",
+]
+dependencies = []  # 纯标准库；JS 严格解析经 Node + acorn 桥（见 package.json）
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
+[project.scripts]
+n8n-compiler = "cli:main"
+
+[project.urls]
+Repository = "https://github.com/nodecoda/n8n_compiler"
+Documentation = "https://github.com/nodecoda/n8n_compiler/blob/main/README.md"
+
+[tool.setuptools]
+py-modules = ["cli", "manifest", "typed_ir"]
+
+[tool.setuptools.packages.find]
+include = [
+    "ast_nodes*", "checker*", "jscode*", "compiler*",
+    "parser*", "runtime*", "scope*", "type_system*", "values*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = ["node_modules", ".omx", "build", "dist"]
+
+[tool.ruff.lint]
+# TRY004：类型/形状校验统一抛 ValueError（typed_ir/decompile/deploy 公共契约，
+#   调用方与测试以 ValueError 断言；改 TypeError 会破坏既有契约）。
+# BLE001：批处理/矩阵脚本刻意宽异常——单场景失败记录继续，不中止整批。
+ignore = ["TRY004", "BLE001", "EXE001"]

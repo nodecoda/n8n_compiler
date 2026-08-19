@@ -1,5 +1,9 @@
 # n8n Compiler
 
+![CI](https://github.com/nodecoda/n8n_compiler/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
+
 n8n Workflow 的 AOT 编译器前端（Python，纯标准库）：把 n8n Workflow JSON
 （节点 + 连线 + 表达式）解析为强类型 AST，静态检查，编译为可序列化的强类型
 typed IR v2（v1 兼容装载），供独立轻量运行时或部署方 runtime adapter 消费。
@@ -11,11 +15,27 @@ workflow JSON ─→ parser ─→ 强类型 AST ─→ checker ─→ compiler 
                      (nodes/connections/expressions)      (拓扑序+digest+manifest)
 ```
 
+## 安装
+
+```bash
+# Python（纯标准库，零运行时第三方依赖）
+pip install -e .          # 提供 `n8n-compiler` 命令（或直接用 python3 cli.py）
+
+# JS acorn 桥（Code 节点严格语法解析）
+npm ci                    # 安装 acorn / acorn-walk
+```
+
 ## 使用
 
 ```bash
-python3 cli.py check workflow.json                  # 解析 + 静态校验
-python3 cli.py compile workflow.json -o out.ir.json # 编译 typed IR
+# 方式一：可安装入口（pip install -e . 后）
+n8n-compiler check workflow.json                   # 解析 + 静态校验
+n8n-compiler compile workflow.json -o out.ir.json  # 编译 typed IR
+
+# 方式二：直接运行（无需安装）
+python3 cli.py check workflow.json
+python3 cli.py compile workflow.json -o out.ir.json
+
 # 注：README 历史版本提到的 `export` 命令尚未实现（cli.py 现仅 check/compile）
 ```
 
@@ -137,6 +157,47 @@ python3 tests/coverage.py --threshold 85     # 覆盖率 + CI 门禁
 ```
 
 分层（unit / integration(node) / matrix(n8n repo)）、`N8N_REPO` 环境变量、
-覆盖率工具特性与治理基线见 [TESTING.md](TESTING.md)。当前基线：281 tests，
-92.8% 覆盖率（2026-08-19，P1-2 AI 链 Code 静态分析后；
-口径修复见 tests/test_coverage_tool.py）。
+覆盖率工具特性与治理基线见 [TESTING.md](TESTING.md)。当前基线：290 tests，
+92.2% 覆盖率，矩阵 130 PASS（2026-08-19，第五轮审核修复批次后；
+口径修复见 tests/test_coverage_tool.py）。CI 门禁 `--threshold 90`。
+
+
+## 目录结构
+
+```
+.
+├── cli.py               # CLI 入口（check/compile；pip 安装后为 n8n-compiler）
+├── typed_ir.py          # typed IR 装载/校验（v2 当前，v1 兼容）+ digest
+├── manifest.py          # 运行时依赖清单（models/vector_stores/tools/credentials）
+├── parser/              # n8n Workflow JSON -> 强类型 AST（含 JS 源码分流）
+├── ast_nodes/           # AST 节点/类型注册表（node_type.py：端口形状声明）
+├── checker/             # 静态校验（连接/表达式/Code 契约/循环检测）
+├── jscode/              # JS 一等公民静态通道（acorn 严格解析 + ESTree 分析）
+├── compiler/            # AST -> typed IR（拓扑序/AI 子节点排除/settings）
+├── runtime/             # decompile（round-trip 还原）+ deploy（REST 部署）
+├── scope/ type_system/ values/   # 符号表 / 类型系统 / 引用与值
+├── scripts/             # 验证工具（execute_verify/matrix/deploy + acorn 桥）
+├── tests/               # unittest 全量测试（分层见 TESTING.md）
+├── ana-docs/            # 架构审核与设计文档（每轮审核 + 修复记录）
+└── .github/workflows/   # CI（py 3.10/3.12/3.13 + lint + 覆盖率；矩阵手动触发）
+```
+
+顶层模块（`cli.py`/`typed_ir.py`/`manifest.py`）与包平铺：保持与 coze_compiler
+一致的扁平布局，`pip install -e .` 后可整体导入。
+
+## 开发与贡献
+
+- 测试策略/命令/覆盖率约定：[TESTING.md](TESTING.md)
+- 贡献纪律（先红后绿 / 矩阵不回退 / lint 零噪音）：[CONTRIBUTING.md](CONTRIBUTING.md)
+- 安全策略：[SECURITY.md](SECURITY.md)
+- Lint：`ruff check .`（规则集见 `pyproject.toml`；`pip install ruff`）
+
+## 相关项目
+
+- [nodecoda-compiler](https://github.com/nodecoda/nodecoda-compiler) — ncoda 语言编译器（本编译器上游语言）
+- [coze_compiler](https://github.com/btrobot/coze_compiler) — Coze 平台编译器（架构参照系）
+- [n8n](https://github.com/n8n-io/n8n) — 对照基准（只读，禁止修改）
+
+## 许可证
+
+[Apache-2.0](LICENSE)

@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: test (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+
+      - name: Set up Node (acorn bridge)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Install package (editable)
+        run: pip install -e .
+
+      - name: Lint (ruff)
+        run: |
+          pip install ruff
+          ruff check .
+
+      - name: Unit + integration tests
+        run: python3 -m unittest discover -s tests
+
+      - name: Coverage gate
+        run: python3 tests/coverage.py --threshold 90
+
+      - name: CLI smoke (installed entry point)
+        run: |
+          python3 - <<'EOF'
+          import json, subprocess, tempfile
+          wf = {
+            "nodes": [
+              {"parameters": {}, "name": "Trigger",
+               "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1, "position": [0, 0]},
+              {"parameters": {"jsCode": "return items;"}, "name": "Out",
+               "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [200, 0]},
+            ],
+            "connections": {"Trigger": {"main": [[{"node": "Out", "type": "main", "index": 0}]]}},
+          }
+          with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+              json.dump(wf, f); src = f.name
+          r = subprocess.run(["n8n-compiler", "compile", src], capture_output=True, text=True)
+          assert r.returncode == 0, r.stderr
+          d = json.loads(r.stdout)
+          assert d["format"] == "n8n-typed-ir" and d["format_version"] == 2
+          print("CLI smoke OK")
+          EOF
+
+  matrix:
+    name: matrix (n8n official workflows)
+    runs-on: ubuntu-latest
+    # 完整 n8n 仓库拉取重（数百 MB）；默认不跑，手动触发时执行
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: n8n_compiler
+
+      - name: Sparse-checkout n8n test workflows
+        uses: actions/checkout@v4
+        with:
+          repository: n8n-io/n8n
+          path: n8n
+          sparse-checkout: |
+            packages/@n8n/workflow-sdk/test-fixtures/committed-workflows
+            packages/frontend/editor-ui/src/features/workflows/templates/utils/samples
+            packages/testing/playwright/workflows
+            packages/testing/playwright/tests/cli-workflows/workflows
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node (acorn bridge)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install deps
+        working-directory: n8n_compiler
+        run: |
+          npm ci
+          pip install -e .
+
+      - name: Batch matrix
+        working-directory: n8n_compiler
+        env:
+          N8N_REPO: ${{ github.workspace }}/n8n
+        run: python3 -m unittest tests.test_batch_matrix
