@@ -1,0 +1,9 @@
+[project]
+name = "n8n-compiler"
+version = "0.1.0"
+description = "n8n Workflow AOT compiler frontend: n8n Workflow JSON -> strongly-typed AST -> checker -> typed IR v1"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

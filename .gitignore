@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Dependencies
+node_modules/
+
+# OMX runtime state
+.omx/
+
+# Build / scratch
+dist/
+build/
+*.log
+.agent-setup/
+
+# Local scratch
+*.local
