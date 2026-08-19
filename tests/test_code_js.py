@@ -1,7 +1,7 @@
 """Unit tests for the static JS subsystem (strict parse + AST contract)."""
 import unittest
 
-from code import (  # noqa: E402
+from jscode import (
     CodeEffect,
     OutputShapeKind,
     compile_js_batch,
@@ -257,7 +257,7 @@ class TestContractJsAstInvariant(unittest.TestCase):
         return node, _contract_from_dict(node["config"]["js"])
 
     def test_contract_derivable_from_js_ast(self):
-        from code.js_static import _contract_from_ast
+        from jscode.js_static import _contract_from_ast
         source = "return items.map((it) => ({ v: it.json.v }));"
         node, stored = self._ir_for(source)
         js = node["config"]["js"]
@@ -272,7 +272,7 @@ class TestContractJsAstInvariant(unittest.TestCase):
 
     def test_contract_deps_consistent_across_shapes(self):
         # 多种输出形状下 contract（deps/effect）都与 AST 推导一致
-        from code.js_static import _contract_from_ast
+        from jscode.js_static import _contract_from_ast
         for source in (
             "return { sum: items.reduce((a, it) => a + it.json.n, 0) };",
             "return items[0];",

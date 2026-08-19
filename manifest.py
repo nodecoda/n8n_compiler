@@ -14,14 +14,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ast_nodes.node_decls import (
-    LLMNode,
-    ModelNode,
-    RetrieverNode,
     ToolNode,
     TriggerNode,
-    VectorStoreNode,
 )
-from ast_nodes.nodes import NodeDecl, WorkflowAST
+from ast_nodes.nodes import WorkflowAST
 
 _MODEL_PARAM_KEYS = ("modelName", "model")
 _WEBHOOK_TYPES = {"n8n-nodes-base.webhook", "n8n-nodes-base.webhookV2"}

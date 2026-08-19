@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from .datatype import DataType
 
@@ -16,7 +16,7 @@ from .datatype import DataType
 class TypeInfo:
     """递归类型描述符。"""
     type: DataType
-    elem_type_info: Optional[TypeInfo] = None
+    elem_type_info: TypeInfo | None = None
     required: bool = False
     desc: str = ""
     properties: dict[str, TypeInfo] = field(default_factory=dict)

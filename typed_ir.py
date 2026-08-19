@@ -18,7 +18,7 @@ import json
 import re
 from typing import Any
 
-from ast_nodes.node_type import EXIT_NODE_KEY, ROOT_SCOPE
+from ast_nodes.node_type import EXIT_NODE_KEY
 
 IR_FORMAT = "n8n-typed-ir"
 # P1-1c（v4）：IR v2 = connections 携带 conn_type（ai_* 子连接完整还原）。
@@ -159,7 +159,7 @@ def validate_typed_ir(document: dict[str, Any], *, verify_digest: bool = True) -
         if not isinstance(settings, dict):
             raise ValueError("typed IR workflow.settings must be an object")
         for skey in settings:
-            _expect_string(skey, f"typed IR workflow.settings key")
+            _expect_string(skey, "typed IR workflow.settings key")
 
     hierarchy = _expect_dict(document["hierarchy"], "typed IR hierarchy")
     for key, parent in hierarchy.items():
@@ -178,7 +178,7 @@ def _validate_node(node: dict[str, Any], index: int) -> None:
     path = f"typed IR nodes[{index}]"
     _validate_fields(node, required={"key", "type", "name", "config"}, allowed=_NODE_FIELDS,
                      path=path)
-    key = _expect_string(node["key"], f"{path}.key")
+    _expect_string(node["key"], f"{path}.key")
     _expect_string(node["type"], f"{path}.type")
     _expect_string(node["name"], f"{path}.name")
     if node.get("parent_key") is not None:
@@ -206,9 +206,8 @@ def _validate_config(config: dict[str, Any], path: str) -> None:
         contract = _expect_dict(js["contract"], f"{path}.js.contract")
         _expect_string(contract.get("effect", ""), f"{path}.js.contract.effect")
         _expect_string(contract.get("runtime", ""), f"{path}.js.contract.runtime")
-    if "js_ast" in config and config["js_ast"] is not None:
-        if not isinstance(config["js_ast"], dict):
-            raise ValueError(f"{path}.js_ast must be an object")
+    if config.get("js_ast") is not None and not isinstance(config["js_ast"], dict):
+        raise ValueError(f"{path}.js_ast must be an object")
 
 
 def _validate_type(info: dict[str, Any], path: str) -> None:
@@ -296,11 +295,12 @@ def _validate_connections(connections: Any, node_map: dict[str, dict[str, Any]])
             raise ValueError(
                 f"typed IR connection has unknown conn_type {conn_type!r}"
             )
-        if "to_index" in conn:
-            if not isinstance(conn["to_index"], int) or isinstance(conn["to_index"], bool):
-                raise ValueError(
-                    f"typed IR connections[{index}].to_index must be an integer"
-                )
+        to_index_present = "to_index" in conn
+        to_index = conn.get("to_index")
+        if to_index_present and (not isinstance(to_index, int) or isinstance(to_index, bool)):
+            raise ValueError(
+                f"typed IR connections[{index}].to_index must be an integer"
+            )
         if from_node not in node_map:
             raise ValueError(f"typed IR connection references unknown node {from_node}")
         if to_node not in node_map:
@@ -309,12 +309,11 @@ def _validate_connections(connections: Any, node_map: dict[str, dict[str, Any]])
             raise ValueError(f"typed IR connection has invalid from_port {from_port!r}")
         # to_port 校验（P1-1c 放宽）：main 边必须 "main"；ai 边（n8n 无 to_port
         # 概念）允许 "main"（编译器编码）或与 conn_type 相同的显式值。
-        if to_port != "main":
-            if conn_type == "main" or to_port != conn_type:
-                raise ValueError(
-                    f"typed IR connection to_port must be 'main' "
-                    f"(ai 边可为其 conn_type), got {to_port!r}"
-                )
+        if to_port != "main" and (conn_type == "main" or to_port != conn_type):
+            raise ValueError(
+                f"typed IR connection to_port must be 'main' "
+                f"(ai 边可为其 conn_type), got {to_port!r}"
+            )
 
 
 def _main_topology_nodes(connections: Any, node_map: dict[str, dict[str, Any]]) -> set[str]:
@@ -363,7 +362,7 @@ def _validate_manifest(manifest: Any) -> None:
             raise ValueError("typed IR manifest.ai_connections_dropped must be an int")
         if dropped < 0:
             raise ValueError("typed IR manifest.ai_connections_dropped must be >= 0")
-    bind_status = _expect_dict(manifest["bind_status"], "typed IR manifest.bind_status")
+    _expect_dict(manifest["bind_status"], "typed IR manifest.bind_status")
     requires = _expect_dict(manifest["requires"], "typed IR manifest.requires")
     for name, refs in requires.items():
         for ref in _expect_list(refs, f"typed IR manifest.requires.{name}"):

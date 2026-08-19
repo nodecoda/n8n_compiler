@@ -5,12 +5,12 @@ Code 节点走一等公民路径：严格 acorn parse -> StaticContract + ESTree
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from ast_nodes.configs import N8NErrorPolicy
 from ast_nodes.mappings import node_class_for
 from ast_nodes.node_decls import CodeNode, NodeDecl
-from code import compile_js_static, parse_js
+from jscode import compile_js_static, parse_js
 
 _CODE_PARAM_FIELDS = ("jsCode", "code")
 # P1-2（v4）：AI 链内联 Code 类型——取源走 supplyData 工厂分流
@@ -28,7 +28,7 @@ class UnsupportedSourceError(ValueError):
 
 
 def _code_source(parameters: dict[str, Any], *, node_type: str = "",
-                 branch: Optional[str] = None) -> tuple[str, str]:
+                 branch: str | None = None) -> tuple[str, str]:
     """从 parameters 取 JS 源码与执行模式（v1 仅 JS；Python 模式后续）。
 
     按节点类型分流：
@@ -68,7 +68,7 @@ def _code_source(parameters: dict[str, Any], *, node_type: str = "",
 
 
 def _langchain_code_source(parameters: dict[str, Any],
-                           branch: Optional[str]) -> tuple[str, str]:
+                           branch: str | None) -> tuple[str, str]:
     """langchain.code 双模式取源（P2-1，v5）。branch: "execute"/"supplyData"/None。"""
     code_param = parameters.get("code")
     if isinstance(code_param, dict):
@@ -103,7 +103,7 @@ def _toolcode_source(parameters: dict[str, Any]) -> tuple[str, str]:
     )
 
 
-def adapt_node(raw: dict[str, Any], js_cache: Optional[dict] = None) -> NodeDecl:
+def adapt_node(raw: dict[str, Any], js_cache: dict | None = None) -> NodeDecl:
     """反序列化一个 n8n 节点为强类型 NodeDecl。key = 节点名（n8n 唯一约束）。
 
     js_cache: 预编译的 Code 节点缓存 {name: (StaticContract, estree_ast|None)}，
@@ -138,7 +138,14 @@ def adapt_node(raw: dict[str, Any], js_cache: Optional[dict] = None) -> NodeDecl
             kwargs["js_contract"] = static
             kwargs["js_ast"] = js_ast
         else:
-            from code import StaticContract, Contract, OutputShape, OutputShapeKind, CodePayload, CodeEffect
+            from jscode import (
+                CodeEffect,
+                CodePayload,
+                Contract,
+                OutputShape,
+                OutputShapeKind,
+                StaticContract,
+            )
             kwargs["js_contract"] = StaticContract(
                 contract=Contract(output=OutputShape(kind=OutputShapeKind.VOID), effect=CodeEffect.UNKNOWN),
                 payload=CodePayload(source=""),

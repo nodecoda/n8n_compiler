@@ -12,8 +12,8 @@ from ast_nodes.configs import ExceptionConfig, N8NErrorPolicy
 from ast_nodes.connection import Connection
 from ast_nodes.node_decls import CodeNode, SetNode, TriggerNode
 from ast_nodes.nodes import WorkflowAST, node_to_config_dict
-from code import JSInfraError  # noqa: E402
-from code.js_parser import JSSyntaxError, _run_bridge, parse_js_batch
+from jscode import JSInfraError
+from jscode.js_parser import JSSyntaxError, _run_bridge, parse_js_batch
 from parser.node_adaptors import _code_source, adapt_node
 from scope.scope import DuplicateSymbolError, Scope, ScopeLevel
 from scope.symbol import Symbol, SymbolKind
@@ -236,18 +236,18 @@ class TestJsBridgeInfraFailures(unittest.TestCase):
 
     def test_find_node_env_override(self):
         with mock.patch.dict("os.environ", {"NODE": "/opt/node/bin/node"}, clear=False):
-            from code.js_parser import find_node
+            from jscode.js_parser import find_node
             self.assertEqual(find_node(), "/opt/node/bin/node")
 
     def test_bridge_script_missing(self):
-        with mock.patch("code.js_parser._SCRIPT", mock.Mock(exists=lambda: False)):
+        with mock.patch("jscode.js_parser._SCRIPT", mock.Mock(exists=lambda: False)):
             with self.assertRaises(JSInfraError) as ctx:
                 _run_bridge(b"{}", timeout=5)
             self.assertIn("bridge script missing", str(ctx.exception))
 
     def test_bridge_timeout(self):
-        with mock.patch("code.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
-             mock.patch("code.js_parser.subprocess.run",
+        with mock.patch("jscode.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
+             mock.patch("jscode.js_parser.subprocess.run",
                         side_effect=__import__("subprocess").TimeoutExpired("node", 5)):
             with self.assertRaises(JSInfraError) as ctx:
                 _run_bridge(b"{}", timeout=5)
@@ -255,16 +255,16 @@ class TestJsBridgeInfraFailures(unittest.TestCase):
 
     def test_bridge_nonzero_exit(self):
         proc = mock.Mock(returncode=1, stderr=b"boom")
-        with mock.patch("code.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
-             mock.patch("code.js_parser.subprocess.run", return_value=proc):
+        with mock.patch("jscode.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
+             mock.patch("jscode.js_parser.subprocess.run", return_value=proc):
             with self.assertRaises(JSInfraError) as ctx:
                 _run_bridge(b"{}", timeout=5)
             self.assertIn("exited 1", str(ctx.exception))
 
     def test_bridge_invalid_json(self):
         proc = mock.Mock(returncode=0, stdout=b"not json")
-        with mock.patch("code.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
-             mock.patch("code.js_parser.subprocess.run", return_value=proc):
+        with mock.patch("jscode.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
+             mock.patch("jscode.js_parser.subprocess.run", return_value=proc):
             with self.assertRaises(JSInfraError) as ctx:
                 _run_bridge(b"{}", timeout=5)
             self.assertIn("invalid JSON", str(ctx.exception))
@@ -272,8 +272,8 @@ class TestJsBridgeInfraFailures(unittest.TestCase):
     def test_parse_js_batch_empty_and_mismatch(self):
         self.assertEqual(parse_js_batch([]), [])
         proc = mock.Mock(returncode=0, stdout=json.dumps({"results": [{"ok": True}]}).encode())
-        with mock.patch("code.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
-             mock.patch("code.js_parser.subprocess.run", return_value=proc):
+        with mock.patch("jscode.js_parser._SCRIPT", mock.Mock(exists=lambda: True)), \
+             mock.patch("jscode.js_parser.subprocess.run", return_value=proc):
             # 结果数与脚本数不匹配 -> 明确失败
             with self.assertRaises(JSInfraError) as ctx:
                 parse_js_batch(["a", "b"])
@@ -288,13 +288,13 @@ class TestJsStatic(unittest.TestCase):
     """真实 acorn 桥（Node 可用时）验证 js_static 高层入口。"""
 
     def test_compile_js_static_warning_path(self):
-        res = __import__("code").compile_js_static("return $json;")
+        res = __import__("jscode").compile_js_static("return $json;")
         self.assertTrue(res.ok)
         # runOnceForAllItems 有 mode hint warning
         self.assertTrue(any("runOnceForAllItems" in w for w in res.warnings))
 
     def test_scan_js_source_legacy_compat(self):
-        from code.js_static import scan_js_source
+        from jscode.js_static import scan_js_source
         tokens, errors, warnings = scan_js_source("return 1;")
         self.assertEqual(tokens, [])
         self.assertEqual(errors, [])
@@ -305,7 +305,7 @@ class TestJsStatic(unittest.TestCase):
         self.assertEqual(warnings, [])
 
     def test_compile_js_batch_mixed(self):
-        from code import compile_js_batch
+        from jscode import compile_js_batch
         results = compile_js_batch(["return 1;", "const = ;"])
         self.assertEqual(len(results), 2)
         self.assertTrue(results[0][0].ok)
@@ -325,10 +325,11 @@ class TestPublicErrorContracts(unittest.TestCase):
         # P3-5：reject_non_finite 公开导出（替代私有 _reject_non_finite），
         # 作为 json parse_constant 使用；NaN/Infinity 都显式拒绝
         from json import loads
+
         from typed_ir import reject_non_finite
         for const in ("NaN", "Infinity", "-Infinity"):
             with self.assertRaises(ValueError) as ctx:
-                loads('{"x": %s}' % const, parse_constant=reject_non_finite)
+                loads(f'{{"x": {const}}}', parse_constant=reject_non_finite)
             self.assertIn("non-finite", str(ctx.exception))
         # 私有名不再可导入（防旧引用复活）
         import typed_ir

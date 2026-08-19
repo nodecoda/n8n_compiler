@@ -8,17 +8,18 @@
 import json
 import unittest
 from collections import Counter
+from typing import ClassVar
 
-from compiler.workflow import compile_ast  # noqa: E402
-from checker.validator import validate_workflow  # noqa: E402
-from parser.workflow import parse_workflow  # noqa: E402
-from tests.helpers import (  # noqa: E402
+from checker.validator import validate_workflow
+from compiler.workflow import compile_ast
+from parser.workflow import parse_workflow
+from tests.helpers import (
     COMMITTED_DIR_REL,
     PLAYWRIGHT_DIR_REL,
     TEMPLATES_DIR_REL,
     n8n_repo,
 )
-from typed_ir import validate_typed_ir, verify_typed_ir_digest  # noqa: E402
+from typed_ir import validate_typed_ir, verify_typed_ir_digest
 
 REPO = n8n_repo()
 GROUP_DIRS = {
@@ -31,7 +32,7 @@ GROUP_DIRS = {
 def _run_all():
     results = {}
     seen = set()
-    for _name, d in GROUP_DIRS.items():
+    for d in GROUP_DIRS.values():
         if not d.exists():
             continue
         for p in sorted(d.rglob('*.json')):
@@ -71,7 +72,7 @@ class TestRepoBatchMatrix(unittest.TestCase):
       CYCLIC: 10 / OTHER: 精确断言
     """
 
-    PASS = {
+    PASS: ClassVar[set[str]] = {
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/10.json',
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/11.json',
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/12.json',
@@ -205,7 +206,7 @@ class TestRepoBatchMatrix(unittest.TestCase):
         'packages/testing/playwright/workflows/mcp-trigger/mcp-trigger-n8n-oauth2-private-cred.json',
 }
 
-    CYCLIC = {
+    CYCLIC: ClassVar[set[str]] = {
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/1.json',
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/2.json',
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/3.json',
@@ -219,7 +220,7 @@ class TestRepoBatchMatrix(unittest.TestCase):
     
 }
 
-    OTHER = {
+    OTHER: ClassVar[dict[str, str]] = {
         'packages/@n8n/workflow-sdk/test-fixtures/committed-workflows/13.json': 'parse_error',
         'packages/testing/playwright/workflows/Test_workflow-actions_import_nodes_empty_name.json': 'parse_error',
         'packages/testing/playwright/workflows/ai_assistant_test_workflow.json': 'check_code_syntax_error',

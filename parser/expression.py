@@ -13,9 +13,9 @@ n8n 表达式（@n8n/expression-runtime 语法）：
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from values.variable import GlobalVarType
 
@@ -45,7 +45,7 @@ class ParsedRef:
     kind: ExprKind
     node: str = ""
     path: tuple[str, ...] = ()
-    var_type: Optional[GlobalVarType] = None
+    var_type: GlobalVarType | None = None
     raw: str = ""
 
     def to_dict(self) -> dict[str, Any]:
@@ -76,7 +76,7 @@ def _split_path(member: str) -> tuple[str, ...]:
     return tuple(parts)
 
 
-def _parse_node_ref(body: str) -> Optional[ParsedRef]:
+def _parse_node_ref(body: str) -> ParsedRef | None:
     """$node["X"]... / $node.Name... 形态（n8n 两种合法写法）。"""
     m = re.match(r"\$node\s*\[\s*(['\"])(.*?)\1\s*\]", body)
     if m:
@@ -103,7 +103,7 @@ def _parse_node_ref(body: str) -> Optional[ParsedRef]:
     return None
 
 
-def _parse_global_ref(body: str) -> Optional[ParsedRef]:
+def _parse_global_ref(body: str) -> ParsedRef | None:
     """$env.X / $execution.id / $now 等。"""
     for root, var_type in _GLOBAL_ROOTS.items():
         if body == root:
@@ -125,7 +125,7 @@ _PURE_PATH_RE = re.compile(
 )
 
 
-def _parse_input_ref(body: str) -> Optional[ParsedRef]:
+def _parse_input_ref(body: str) -> ParsedRef | None:
     """$json.a.b / $input 形态。
 
     $json 后的剩余必须是一段纯字段路径（点/下标），否则（运算符、调用、

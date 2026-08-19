@@ -14,8 +14,9 @@ from __future__ import annotations
 import os
 import shutil
 import unittest
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -56,7 +57,7 @@ def skip_unless_node(cls: type) -> type:
     缺 Node 时按层 skip，不伪造结果（与 n8n-repo 守卫同纪律；覆盖 TESTING.md
     「缺依赖时按层 skip」的 node 层）。
     """
-    from code.js_parser import JSInfraError, find_node
+    from jscode.js_parser import JSInfraError, find_node
 
     original = cls.setUp
 

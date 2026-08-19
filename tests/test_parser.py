@@ -1,16 +1,14 @@
 """parser 回归：端口映射（IF main_0/main_1）、ai_referenced、exit 收口、多输出端口。"""
 import unittest
 
-from ast_nodes.node_type import EXIT_NODE_KEY, NodeKind  # noqa: E402
-from parser.workflow import parse_workflow  # noqa: E402
-from tests.helpers import (  # noqa: E402
+from ast_nodes.node_type import EXIT_NODE_KEY
+from parser.workflow import parse_workflow
+from tests.helpers import (
     chain_workflow,
     code_node,
     if_node,
     limit_node,
     make_workflow,
-    manual_trigger_node,
-    mini_webhook_workflow,
     set_node,
     switch_workflow,
     webhook_node,
@@ -369,9 +367,7 @@ class TestMultiOutputPorts(unittest.TestCase):
 
     def test_exit_synthesis_uses_actual_ports(self):
         # Switch main_1 未连（丢弃分支）：exit 不产生假端口收口
-        wf = switch_workflow(2, **{
-            "Switch": {"main": [[{"node": "Target0"}], []]},
-        })
+        wf = switch_workflow(2, Switch={"main": [[{"node": "Target0"}], []]})
         ast = parse_workflow(wf)
         exit_ins = {(c.from_node, c.from_port) for c in ast.connections
                     if c.to_node == EXIT_NODE_KEY}

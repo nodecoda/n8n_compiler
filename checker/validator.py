@@ -8,16 +8,15 @@ n8n 适配点（语义等价，不降质量）：
 """
 from __future__ import annotations
 
+import itertools
 import re
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
 
-from ast_nodes.node_decls import CodeNode, EntryNode, ExitNode, IfNode
-from ast_nodes.node_type import ENTRY_NODE_KEY, EXIT_NODE_KEY, NodeKind
+from ast_nodes.node_decls import CodeNode
+from ast_nodes.node_type import EXIT_NODE_KEY, NodeKind
 from ast_nodes.nodes import WorkflowAST
 from type_system.datatype import DataType
 from type_system.typeinfo import TypeInfo
-from values.reference import Reference
 from values.variable import GlobalVarType
 
 _PARAMETER_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -93,7 +92,7 @@ def validate_connections(ast: WorkflowAST) -> list[ValidationIssue]:
                 end_node=conn.to_node,
             ))
             continue
-        node = ast.nodes[conn.from_node]
+        ast.nodes[conn.from_node]
         # 端口名形状（main | main_{n}）。n8n 多输出节点（Switch 路由数、插件
         # 节点）端口集合运行时才确定，编辑器保存时不校验存在性 -> 只查形状。
         if not _OUTPUT_PORT_SHAPE.match(conn.from_port):
@@ -138,7 +137,7 @@ def detect_cycles(ast: WorkflowAST) -> list[ValidationIssue]:
             elif state[successor] == 1:
                 start = stack.index(successor)
                 cycle = stack[start:] + [successor]
-                for left, right in zip(cycle, cycle[1:]):
+                for left, right in itertools.pairwise(cycle):
                     issues.append(ValidationIssue(
                         code="cycle_detected",
                         start_node=left,

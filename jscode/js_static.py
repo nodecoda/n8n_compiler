@@ -9,8 +9,6 @@ with warnings, never guesses.
 """
 from __future__ import annotations
 
-from typing import List, Tuple
-
 from .contract import (
     CodeEffect,
     CodePayload,
@@ -26,7 +24,7 @@ from .js_ast import (
     extract_output_shape,
     reject_module_syntax,
 )
-from .js_parser import JSInfraError, JSParseResult, parse_js, parse_js_batch
+from .js_parser import JSParseResult, parse_js, parse_js_batch
 
 _MODE_HINTS = {
     "runOnceForAllItems": "items is the full input array",
@@ -120,7 +118,7 @@ def compile_js_batch(
     return out
 
 
-def scan_js_source(source: str) -> Tuple[List, List[str], List[str]]:
+def scan_js_source(source: str) -> tuple[list, list[str], list[str]]:
     """Legacy-compat: strict parse; returns (tokens_placeholder, errors, warnings).
 
     The acorn path produces no token stream; errors carry line/col messages.

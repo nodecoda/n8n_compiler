@@ -6,17 +6,17 @@ n8n 节点级策略：
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class ExceptionConfig:
     """异常配置（对齐 coze ExceptionConfig 的序列化形状）。"""
-    timeout_ms: Optional[int] = None
-    max_retry: Optional[int] = None
-    data_on_err: Optional[str] = None
-    process_type: Optional[int] = None
+    timeout_ms: int | None = None
+    max_retry: int | None = None
+    data_on_err: str | None = None
+    process_type: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {}
@@ -36,8 +36,8 @@ class N8NErrorPolicy:
     """n8n 节点错误策略。"""
     on_error: str = "stopWorkflow"           # continueRegularOutput | continueErrorOutput | stopWorkflow
     retry_on_fail: bool = False
-    max_tries: Optional[int] = None
-    wait_between_tries: Optional[int] = None
+    max_tries: int | None = None
+    wait_between_tries: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {"on_error": self.on_error}

@@ -6,8 +6,8 @@ from parser.expression import (
     is_expression,
     parse_expression,
     parse_value,
-)  # noqa: E402
-from values.variable import GlobalVarType  # noqa: E402
+)
+from values.variable import GlobalVarType
 
 
 class TestIsExpression(unittest.TestCase):

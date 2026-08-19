@@ -2,10 +2,12 @@
 import json
 import unittest
 
-from ast_nodes.node_type import EXIT_NODE_KEY, ROOT_SCOPE  # noqa: E402
-from compiler.workflow import compile_ast  # noqa: E402
-from parser.workflow import parse_workflow  # noqa: E402
-from tests.helpers import (  # noqa: E402
+from ast_nodes.node_decls import CodeNode
+from ast_nodes.node_type import EXIT_NODE_KEY, ROOT_SCOPE
+from checker.validator import validate_workflow
+from compiler.workflow import compile_ast
+from parser.workflow import parse_workflow
+from tests.helpers import (
     chain_workflow,
     code_node,
     langchain_code_execute_node,
@@ -15,9 +17,7 @@ from tests.helpers import (  # noqa: E402
     tool_code_node,
     webhook_node,
 )
-from checker.validator import validate_workflow  # noqa: E402
-from ast_nodes.node_decls import CodeNode  # noqa: E402
-from typed_ir import (  # noqa: E402
+from typed_ir import (
     IR_FORMAT,
     IR_VERSION,
     compute_typed_ir_digest,

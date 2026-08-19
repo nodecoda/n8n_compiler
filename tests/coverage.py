@@ -23,7 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 PACKAGES = (
-    "parser", "checker", "compiler", "code",
+    "parser", "checker", "compiler", "jscode",  # jscode：JS 静态编译（原 code/，v5 改名避 stdlib 冲突）
     "ast_nodes", "type_system", "values", "scope",
     "runtime",  # 架构审核 P2-N3：decompile/deploy 是部署闭环最险层，必须受门禁
 )
@@ -91,9 +91,9 @@ def main(argv: list[str] | None = None) -> int:
         executed_lines.setdefault(mod, set()).add(lineno)
 
     module_lines: dict[str, tuple[int, int]] = {}
-    for mod in executed_lines:
+    for mod, executed in executed_lines.items():
         total = len(_executable_lines(ROOT / mod))
-        module_lines[mod] = (total, len(executed_lines[mod]))
+        module_lines[mod] = (total, len(executed))
 
     include_prefixes = tuple(args.include.split(","))
     rows = sorted(
@@ -113,8 +113,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{mod:<40}{pct:>6.1f}%{ex:>7}{tot:>7}")
         print("-" * 61)
         skipped = len(result.skipped)
-        print(f"TOTAL{' (skipped: %d)' % skipped if skipped else '':<28}"
-              f"{overall:>6.1f}%{total_ex:>7}{total_tot:>7}")
+        suffix = f" (skipped: {skipped})" if skipped else ""
+        print(f"TOTAL{suffix:<28}{overall:>6.1f}%{total_ex:>7}{total_tot:>7}")
         print(f"tests: ran={result.testsRun} failures={len(result.failures)} "
               f"errors={len(result.errors)} skipped={skipped}")
     else:

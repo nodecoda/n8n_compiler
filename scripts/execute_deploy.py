@@ -38,10 +38,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT))
 sys.path.insert(0, str(REPO_ROOT / "scripts"))  # 复用 execute_matrix._scenarios
 
-from compiler.workflow import compile_ast  # noqa: E402
-from parser.workflow import parse_workflow  # noqa: E402
-from runtime.deploy import deploy_to_n8n  # noqa: E402
-from execute_matrix import _scenarios  # noqa: E402
+from execute_matrix import _scenarios
+
+from compiler.workflow import compile_ast
+from parser.workflow import parse_workflow
+from runtime.deploy import deploy_to_n8n
 
 _SID_RE = re.compile(r"^[A-Za-z0-9_-]+$")          # n8n 工作流 id（base58 风格）
 _CONTAINER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")  # docker 容器名
@@ -49,7 +50,8 @@ _REMOTE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.@-]*$")
 
 
 def _sh(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, capture_output=True, text=True, **kwargs)
+    # check=False：调用方按 returncode 显式判定/记录，不静默抛
+    return subprocess.run(cmd, capture_output=True, text=True, check=False, **kwargs)
 
 
 def _wait_healthz(url: str, timeout: float = 60.0) -> None:

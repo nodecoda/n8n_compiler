@@ -8,7 +8,6 @@ import os
 import unittest
 from unittest import mock
 
-from code.js_parser import JSInfraError
 from tests.helpers import set_node, skip_unless_node
 
 
@@ -37,9 +36,8 @@ class TestSkipUnlessNode(unittest.TestCase):
             def test_placeholder(self):
                 pass
 
-        with self._with_node_env({}):
-            with mock.patch("shutil.which", return_value=None):
-                result = _run_decorated(Dummy)
+        with self._with_node_env({}), mock.patch("shutil.which", return_value=None):
+            result = _run_decorated(Dummy)
         self.assertEqual(result.testsRun, 1)
         self.assertEqual(len(result.skipped), 1)
         self.assertEqual(result.errors, [])

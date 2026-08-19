@@ -8,7 +8,11 @@ import unittest
 
 from compiler.workflow import compile_ast
 from parser.workflow import parse_workflow
-from runtime.decompile import decompile_ir_json, decompile_to_workflow
+from runtime.decompile import (
+    _port_index,  # 白盒：畸形分支入口被 typed_ir 挡，仅单测可达
+    decompile_ir_json,
+    decompile_to_workflow,
+)
 from tests.helpers import (
     chain_workflow,
     code_node,
@@ -18,7 +22,6 @@ from tests.helpers import (
     set_node,
     switch_workflow,
 )
-from runtime.decompile import _port_index  # 白盒：畸形分支入口被 typed_ir 挡，仅单测可达
 
 
 def _compile(wf: dict) -> dict:

@@ -21,7 +21,7 @@ from .contract import (
     StaticContract,
 )
 from .js_ast import classify_effect, extract_deps, extract_output_shape
-from .js_parser import JSSyntaxError, JSInfraError, JSParseResult, parse_js
+from .js_parser import JSInfraError, JSParseResult, JSSyntaxError, parse_js
 from .js_static import compile_js_batch, compile_js_static, scan_js_source
 
 __all__ = [
@@ -29,17 +29,17 @@ __all__ = [
     "CodePayload",
     "Contract",
     "FieldDep",
+    "JSInfraError",
+    "JSParseResult",
+    "JSSyntaxError",
     "OutputShape",
     "OutputShapeKind",
     "StaticContract",
     "classify_effect",
+    "compile_js_batch",
+    "compile_js_static",
     "extract_deps",
     "extract_output_shape",
-    "JSSyntaxError",
-    "JSInfraError",
-    "JSParseResult",
     "parse_js",
-    "compile_js_static",
-    "compile_js_batch",
     "scan_js_source",
 ]

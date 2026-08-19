@@ -50,15 +50,15 @@ def build_probe(workflow_id: str) -> dict:
 
 
 def print_remote_commands(out: Path, workflow_id: str) -> None:
-    print(f"\n远端验证命令（在装有 docker + n8nio/n8n 的机器上，产物先拷过去）:\n")
+    print("\n远端验证命令（在装有 docker + n8nio/n8n 的机器上，产物先拷过去）:\n")
     print(f"  scp {out} <remote>:/tmp/{out.name}")
-    print(f"  ssh <remote> 'mkdir -p /tmp/n8n-data && chmod 777 /tmp/n8n-data && \\")
-    print(f"    docker run --rm --entrypoint sh -v /tmp:/data -v /tmp/n8n-data:/home/node/.n8n \\")
-    print(f"      -e N8N_DIAGNOSTICS_ENABLED=false n8nio/n8n -c \\")
+    print("  ssh <remote> 'mkdir -p /tmp/n8n-data && chmod 777 /tmp/n8n-data && \\")
+    print("    docker run --rm --entrypoint sh -v /tmp:/data -v /tmp/n8n-data:/home/node/.n8n \\")
+    print("      -e N8N_DIAGNOSTICS_ENABLED=false n8nio/n8n -c \\")
     print(f"      \"n8n import:workflow --input=/data/{out.name} && \\")
     print(f"       n8n execute --id={workflow_id} --rawOutput\"'")
-    print(f"\n期望: import 输出 \"Successfully imported 1 workflow.\"；")
-    print(f"      execute 输出含 \\\"result\\\": 42；status=success。")
+    print("\n期望: import 输出 \"Successfully imported 1 workflow.\"；")
+    print("      execute 输出含 \\\"result\\\": 42；status=success。")
 
 
 def main() -> int:

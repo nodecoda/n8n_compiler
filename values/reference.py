@@ -8,9 +8,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
-from .variable import GlobalVarType, RefSourceType
+from .variable import GlobalVarType
 
 
 @dataclass
@@ -18,7 +18,7 @@ class Reference:
     """编译期引用：指向某节点的输出路径，或全局变量。"""
     from_node_key: str
     from_path: list[str] = field(default_factory=list)
-    variable_type: Optional[GlobalVarType] = None
+    variable_type: GlobalVarType | None = None
 
     def is_global_variable(self) -> bool:
         return self.variable_type is not None
@@ -45,7 +45,7 @@ class Reference:
 @dataclass
 class Source:
     """一个输入数据源：块输出引用（ref）或字面量。"""
-    ref: Optional[Reference] = None
+    ref: Reference | None = None
     literal: Any = None
 
     def is_literal(self) -> bool:

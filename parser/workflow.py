@@ -11,16 +11,14 @@
 from __future__ import annotations
 
 from collections import Counter
-from typing import Any, Optional
+from typing import Any
 
-from ast_nodes.configs import N8NErrorPolicy
 from ast_nodes.connection import Connection
-from ast_nodes.node_decls import CodeNode, ExitNode, IfNode, NodeDecl
-from ast_nodes.node_type import spec_for
-from ast_nodes.node_type import EXIT_NODE_KEY, NodeKind, ShapeKind
+from ast_nodes.node_decls import CodeNode, ExitNode, NodeDecl
+from ast_nodes.node_type import EXIT_NODE_KEY, NodeKind, spec_for
 from ast_nodes.nodes import WorkflowAST
-from parser.node_adaptors import _LANGCHAIN_CODE_TYPE, _code_source, adapt_node
 from parser.expression import ExprKind, ParsedRef, parse_value
+from parser.node_adaptors import _LANGCHAIN_CODE_TYPE, _code_source, adapt_node
 from scope.scope import Scope, ScopeLevel
 from scope.symbol import Symbol, SymbolKind
 from scope.symbol_table import SymbolTable
@@ -61,7 +59,7 @@ def _port_name_for(node: NodeDecl, index: int) -> str:
     return _MAIN
 
 
-def _declared_port_count(node: NodeDecl) -> Optional[int]:
+def _declared_port_count(node: NodeDecl) -> int | None:
     """多输出节点声明的输出端口数（从参数推导）。
 
     n8n Switch v3：parameters.rules.values（list，每项一路由）；老版本
@@ -78,7 +76,7 @@ def _declared_port_count(node: NodeDecl) -> Optional[int]:
         # JSON 数值不分 int/float：6 与 6.0 都按整值端口数处理
         return int(n) if isinstance(n, int) or n.is_integer() else None
     rules = node.parameters.get("rules")
-    count: Optional[int] = None
+    count: int | None = None
     if isinstance(rules, dict) and isinstance(rules.get("values"), list):
         count = len(rules["values"])
     elif isinstance(rules, list):
@@ -113,7 +111,7 @@ def _output_port_names(node: NodeDecl) -> list[str]:
     return [_MAIN]
 
 
-def _single_upstream(conns: list[Connection], node_key: str) -> Optional[str]:
+def _single_upstream(conns: list[Connection], node_key: str) -> str | None:
     """节点的唯一 main 上游（用于 $json 绑定）。多上游 -> None（保守）。"""
     ups = [c.from_node for c in conns if c.to_node == node_key and c.to_port == _MAIN]
     if len(ups) == 1:
@@ -121,7 +119,7 @@ def _single_upstream(conns: list[Connection], node_key: str) -> Optional[str]:
     return None
 
 
-def _active_code_branch(name: str, raw_connections: Optional[dict]) -> Optional[str]:
+def _active_code_branch(name: str, raw_connections: dict | None) -> str | None:
     """langchain.code 双模式分流（P2-1，v5）：按节点实际输出连接判定 active 变体。
 
     main 出边 → "execute"（runCodeAllItems，Main 输出）；仅 ai_* 出边 →
@@ -147,7 +145,7 @@ def _active_code_branch(name: str, raw_connections: Optional[dict]) -> Optional[
 
 
 def _precompile_code_nodes(raw_nodes: list[dict[str, Any]],
-                           raw_connections: Optional[dict] = None) -> dict[str, tuple[Any, Optional[dict]]]:
+                           raw_connections: dict | None = None) -> dict[str, tuple[Any, dict | None]]:
     """批量预编译全部 Code 节点（一次 acorn 进程）。
 
     返回 {node_name: (StaticContract, estree_ast|None)}；无 Code 节点或均无源码
@@ -170,7 +168,7 @@ def _precompile_code_nodes(raw_nodes: list[dict[str, Any]],
             jobs.append((raw.get("name", ""), source, mode))
     if not jobs:
         return {}
-    from code import compile_js_batch
+    from jscode import compile_js_batch
     contracts = compile_js_batch(
         [source for _, source, _ in jobs],
         modes=[mode for _, _, mode in jobs],

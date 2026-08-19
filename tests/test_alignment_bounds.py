@@ -12,7 +12,6 @@ from parser.expression import ExprKind, parse_expression, parse_value
 from parser.workflow import parse_workflow
 from typed_ir import compute_typed_ir_digest, load_typed_ir_json, validate_typed_ir
 
-
 # ---------------------------------------------------------------------------
 # 表达式：$input 访问器纪律
 # ---------------------------------------------------------------------------

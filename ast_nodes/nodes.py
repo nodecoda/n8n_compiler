@@ -12,16 +12,15 @@ n8n 适配：
 """
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, ClassVar, Union
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from type_system.typeinfo import TypeInfo
 from values.reference import FieldInfo
 
 from .configs import N8NErrorPolicy
 from .connection import Connection
-from .node_type import ENTRY_NODE_KEY, EXIT_NODE_KEY, NodeKind, ShapeKind
+from .node_type import NodeKind
 
 if TYPE_CHECKING:
     from scope.scope import Scope

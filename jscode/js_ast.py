@@ -16,7 +16,7 @@ the LAST top-level return (bare script or `export default function main`).
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .contract import (
     CodeEffect,
@@ -43,7 +43,7 @@ _FS_MEMBER_ROOTS = {"fs", "process", "child_process"}
 _REQUIRE_NAME = "require"
 
 
-def _iter_child_nodes(node: Dict[str, Any]):
+def _iter_child_nodes(node: dict[str, Any]):
     for value in node.values():
         if isinstance(value, dict) and "type" in value:
             yield value
@@ -53,14 +53,14 @@ def _iter_child_nodes(node: Dict[str, Any]):
                     yield item
 
 
-def _walk(node: Dict[str, Any], parent: Optional[Dict[str, Any]] = None):
+def _walk(node: dict[str, Any], parent: dict[str, Any] | None = None):
     """Depth-first walk yielding (node, parent)."""
     yield node, parent
     for child in _iter_child_nodes(node):
         yield from _walk(child, node)
 
 
-def _pos(node: Dict[str, Any]) -> str:
+def _pos(node: dict[str, Any]) -> str:
     start = node.get("start")
     return f"{start}" if isinstance(start, int) else "?"
 
@@ -70,7 +70,7 @@ def _pos(node: Dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _member_chain(node: Dict[str, Any]) -> Optional[Tuple[str, List[str]]]:
+def _member_chain(node: dict[str, Any]) -> tuple[str, list[str]] | None:
     """Resolve a MemberExpression chain rooted at a dependency base.
 
     Roots: dependency-base identifiers (items/$json/...) or built-in node-ref
@@ -78,7 +78,7 @@ def _member_chain(node: Dict[str, Any]) -> Optional[Tuple[str, List[str]]]:
     cannot be traced statically (dynamic subscript); callers should surface a
     warning via collect_warnings instead of silently dropping the dependency.
     """
-    parts: List[str] = []
+    parts: list[str] = []
     cur = node
     while cur.get("type") == "MemberExpression":
         prop = cur.get("property", {})
@@ -121,8 +121,8 @@ def _member_chain(node: Dict[str, Any]) -> Optional[Tuple[str, List[str]]]:
     return base, parts
 
 
-def extract_deps(ast: Dict[str, Any]) -> List[FieldDep]:
-    deps: List[FieldDep] = []
+def extract_deps(ast: dict[str, Any]) -> list[FieldDep]:
+    deps: list[FieldDep] = []
     seen = set()
     for node, parent in _walk(ast):
         if node.get("type") == "CallExpression":
@@ -161,13 +161,13 @@ def extract_deps(ast: Dict[str, Any]) -> List[FieldDep]:
 # ---------------------------------------------------------------------------
 
 
-def reject_module_syntax(ast: Dict[str, Any]) -> List[str]:
+def reject_module_syntax(ast: dict[str, Any]) -> list[str]:
     """import/export/动态 import() -> 编译错误（n8n Code 节点运行时不可用）。
 
     依据：n8n task-runner 的 VmCodeWrapper 是函数包装的裸脚本，无模块图；
     官方 Common Issues + issue #9464 确认 import/export/动态 import() 均不可用。
     """
-    errors: List[str] = []
+    errors: list[str] = []
     for node, _parent in _walk(ast):
         t = node.get("type")
         if t in ("ImportDeclaration", "ExportNamedDeclaration", "ExportDefaultDeclaration", "ExportAllDeclaration"):
@@ -182,9 +182,9 @@ def reject_module_syntax(ast: Dict[str, Any]) -> List[str]:
 # ---------------------------------------------------------------------------
 
 
-def collect_warnings(ast: Dict[str, Any]) -> List[str]:
+def collect_warnings(ast: dict[str, Any]) -> list[str]:
     """编译期 warning：网络/文件系统调用、require 门控、动态下标丢依赖。"""
-    warnings: List[str] = []
+    warnings: list[str] = []
     for node, _parent in _walk(ast):
         t = node.get("type")
         if t == "CallExpression":
@@ -226,7 +226,7 @@ def _literal_type(value: Any) -> str:
     return "any"
 
 
-def _expr_type(node: Dict[str, Any]) -> str:
+def _expr_type(node: dict[str, Any]) -> str:
     t = node.get("type")
     if t == "Literal":
         return _literal_type(node.get("value"))
@@ -243,8 +243,8 @@ def _expr_type(node: Dict[str, Any]) -> str:
     return "any"
 
 
-def _object_props(node: Dict[str, Any]) -> Dict[str, str]:
-    props: Dict[str, str] = {}
+def _object_props(node: dict[str, Any]) -> dict[str, str]:
+    props: dict[str, str] = {}
     for prop in node.get("properties", []):
         if prop.get("type") != "Property":
             continue
@@ -259,8 +259,8 @@ def _object_props(node: Dict[str, Any]) -> Dict[str, str]:
     return props
 
 
-def _build_parent_map(root: Dict[str, Any]) -> Dict[int, Optional[Dict[str, Any]]]:
-    parents: Dict[int, Optional[Dict[str, Any]]] = {id(root): None}
+def _build_parent_map(root: dict[str, Any]) -> dict[int, dict[str, Any] | None]:
+    parents: dict[int, dict[str, Any] | None] = {id(root): None}
 
     def _go(node, parent):
         parents[id(node)] = parent
@@ -271,7 +271,7 @@ def _build_parent_map(root: Dict[str, Any]) -> Dict[int, Optional[Dict[str, Any]
     return parents
 
 
-def _is_top_level_return(ret: Dict[str, Any], parents: Dict[int, Optional[Dict[str, Any]]]) -> bool:
+def _is_top_level_return(ret: dict[str, Any], parents: dict[int, dict[str, Any] | None]) -> bool:
     """True when the return belongs to the program-level function:
     chain is ReturnStatement -> BlockStatement -> FunctionDeclaration
     (child of Program / ExportDefaultDeclaration), or directly in Program.body.
@@ -291,15 +291,13 @@ def _is_top_level_return(ret: Dict[str, Any], parents: Dict[int, Optional[Dict[s
             continue
         if pt == "FunctionDeclaration":
             gp = parents.get(id(parent))
-            if gp is None or gp.get("type") in ("Program", "ExportDefaultDeclaration"):
-                return True
-            return False
+            return bool(gp is None or gp.get("type") in ("Program", "ExportDefaultDeclaration"))
         if pt in ("FunctionExpression", "ArrowFunctionExpression"):
             return False
         node = parent
 
 
-def extract_output_shape(ast: Dict[str, Any]) -> OutputShape:
+def extract_output_shape(ast: dict[str, Any]) -> OutputShape:
     """Shape from the LAST top-level return statement."""
     parents = _build_parent_map(ast)
     returns = [n for n, _p in _walk(ast) if n.get("type") == "ReturnStatement"]
@@ -341,7 +339,7 @@ def extract_output_shape(ast: Dict[str, Any]) -> OutputShape:
 # ---------------------------------------------------------------------------
 
 
-def classify_effect(ast: Dict[str, Any]) -> CodeEffect:
+def classify_effect(ast: dict[str, Any]) -> CodeEffect:
     for node, _parent in _walk(ast):
         t = node.get("type")
         if t == "CallExpression":

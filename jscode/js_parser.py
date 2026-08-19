@@ -15,7 +15,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any
 
 _SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "js_parse.mjs"
 
@@ -37,8 +37,8 @@ class JSSyntaxError:
 @dataclass(frozen=True)
 class JSParseResult:
     ok: bool
-    errors: List[JSSyntaxError] = field(default_factory=list)
-    ast: Optional[dict[str, Any]] = None
+    errors: list[JSSyntaxError] = field(default_factory=list)
+    ast: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -73,6 +73,7 @@ def _run_bridge(input_bytes: bytes, timeout: float, *extra_args: str) -> dict[st
             input=input_bytes,
             capture_output=True,
             timeout=timeout,
+            check=False,  # returncode 由下方显式判定（acorn 桥错误分类）
         )
     except subprocess.TimeoutExpired as exc:
         raise JSInfraError(f"acorn bridge timed out: {exc}") from exc

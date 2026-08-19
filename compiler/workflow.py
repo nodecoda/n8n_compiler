@@ -13,8 +13,8 @@ import json
 from dataclasses import dataclass, field
 from typing import Any
 
-from ast_nodes.nodes import NodeDecl, WorkflowAST
 from ast_nodes.node_type import EXIT_NODE_KEY, ROOT_SCOPE, NodeKind
+from ast_nodes.nodes import NodeDecl, WorkflowAST
 from checker.validator import validate_workflow
 from compiler.dependency import NodeDependencies, resolve_all_dependencies
 from manifest import DependencyManifest, build_manifest
@@ -158,7 +158,7 @@ def _serialize_ir(
     *,
     workflow_id: str,
     version: str,
-) -> "CompiledWorkflow":
+) -> CompiledWorkflow:
     """序列化 typed IR 文档。"""
     body: dict[str, Any] = {
         "format": IR_FORMAT,

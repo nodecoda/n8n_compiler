@@ -6,7 +6,7 @@
 import unittest
 from pathlib import Path
 
-import tests.coverage as cov  # noqa: E402
+import tests.coverage as cov
 
 
 class TestIsProjectModule(unittest.TestCase):

@@ -7,10 +7,10 @@ target 能引用 source 当且仅当 source 在 target 的上游闭包中（按 
 """
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
-from .scope import Scope, ScopeLevel
-from .symbol import Symbol, SymbolKind
+from .scope import Scope
+from .symbol import Symbol
 
 
 class SymbolTable:

@@ -10,9 +10,9 @@ JS 内部变量不外泄（除非 return）。
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from code.contract import (
+from jscode.contract import (
     CodeEffect,
     OutputShape,
     OutputShapeKind,
@@ -20,7 +20,7 @@ from code.contract import (
 )
 from type_system.typeinfo import TypeInfo
 
-from .node_type import NodeKind, ShapeKind
+from .node_type import NodeKind
 from .nodes import NodeDecl
 
 _MAIN = "main"
@@ -184,8 +184,8 @@ class CodeNode(NodeDecl):
 
     KIND = "code"
 
-    def __init__(self, js_contract: Optional[StaticContract] = None,
-                 js_ast: Optional[dict[str, Any]] = None, **kwargs: Any) -> None:
+    def __init__(self, js_contract: StaticContract | None = None,
+                 js_ast: dict[str, Any] | None = None, **kwargs: Any) -> None:
         kwargs.setdefault("node_type", NodeKind.CODE)
         kwargs.setdefault("input_types", {_MAIN: TypeInfo.array(elem=TypeInfo.any())})
         shape = js_contract.contract.output if js_contract is not None else OutputShape()

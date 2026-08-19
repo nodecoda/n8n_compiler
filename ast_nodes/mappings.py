@@ -4,12 +4,19 @@
 """
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from code.contract import Contract, FieldDep, OutputShape, OutputShapeKind, StaticContract
-from code.contract import CodeEffect, CodePayload
-from values.reference import FieldInfo
+from jscode.contract import (
+    CodeEffect,
+    CodePayload,
+    Contract,
+    FieldDep,
+    OutputShape,
+    OutputShapeKind,
+    StaticContract,
+)
 from type_system.typeinfo import TypeInfo
+from values.reference import FieldInfo
 
 from .node_decls import (
     CodeNode,

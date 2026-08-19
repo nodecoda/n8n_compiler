@@ -89,17 +89,17 @@ class TestDeployToN8n(unittest.TestCase):
             "https://n8n.example.com/api/v1/workflows", 401, "Unauthorized",
             {}, io.BytesIO(b'{"message":"invalid api key"}'),
         )
-        with mock.patch("urllib.request.urlopen", side_effect=http_err):
-            with self.assertRaises(ValueError) as ctx:
-                deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="bad")
+        with mock.patch("urllib.request.urlopen", side_effect=http_err), \
+                self.assertRaises(ValueError) as ctx:
+            deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="bad")
         self.assertIn("401", str(ctx.exception))
         self.assertIn("invalid api key", str(ctx.exception))
 
     def test_network_error_raises(self):
         ir = _compile(mini_webhook_workflow())
-        with mock.patch("urllib.request.urlopen", side_effect=OSError("connection refused")):
-            with self.assertRaises(ValueError) as ctx:
-                deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="k")
+        with mock.patch("urllib.request.urlopen", side_effect=OSError("connection refused")), \
+                self.assertRaises(ValueError) as ctx:
+            deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="k")
         self.assertIn("network", str(ctx.exception))
 
     def test_non_json_response_raises(self):
@@ -114,9 +114,9 @@ class TestDeployToN8n(unittest.TestCase):
         # digest 防篡改：改节点名 -> 部署前显式失败，不发出请求
         ir = _compile(mini_webhook_workflow())
         ir["nodes"][0]["name"] = "Hacked"
-        with mock.patch("urllib.request.urlopen") as urlopen_mock:
-            with self.assertRaises(ValueError):
-                deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="k")
+        with mock.patch("urllib.request.urlopen") as urlopen_mock, \
+                self.assertRaises(ValueError):
+            deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="k")
         urlopen_mock.assert_not_called()
 
 
@@ -162,10 +162,10 @@ class TestDeployUpsert(unittest.TestCase):
 
     def test_unknown_mode_rejected(self):
         ir = self._compile(mini_webhook_workflow())
-        with mock.patch("urllib.request.urlopen") as urlopen_mock:
-            with self.assertRaises(ValueError):
-                deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="k",
-                              mode="bogus")
+        with mock.patch("urllib.request.urlopen") as urlopen_mock, \
+                self.assertRaises(ValueError):
+            deploy_to_n8n(ir, base_url="https://n8n.example.com", api_key="k",
+                          mode="bogus")
         urlopen_mock.assert_not_called()
 
     def test_response_without_id_rejected(self):

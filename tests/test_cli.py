@@ -6,10 +6,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import cli  # noqa: E402
-from code.js_parser import JSInfraError  # noqa: E402
-from tests.helpers import rag_fixture  # noqa: E402
-from typed_ir import load_typed_ir_json, verify_typed_ir_digest  # noqa: E402
+import cli
+from jscode.js_parser import JSInfraError
+from tests.helpers import rag_fixture
+from typed_ir import load_typed_ir_json, verify_typed_ir_digest
 
 
 def _run_cli(argv: list[str]) -> tuple[int, str]:
@@ -104,7 +104,6 @@ class TestCliExitCodes(unittest.TestCase):
 
     def test_compile_validation_error_exit_1(self):
         # validator 拒绝（环）-> WorkflowValidationError -> 1（源错误）
-        from unittest import mock
         with tempfile.TemporaryDirectory() as td:
             src = _write(Path(td), "cyclic.json", {
                 "nodes": [

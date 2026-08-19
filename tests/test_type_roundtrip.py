@@ -7,10 +7,17 @@ import unittest
 
 from ast_nodes.connection import Connection
 from ast_nodes.mappings import load_typed_node, node_class_for
-from ast_nodes.nodes import node_to_config_dict
 from ast_nodes.node_decls import CodeNode, EntryNode, ExitNode, GenericNode, SetNode
-from ast_nodes.node_type import NodeKind
-from code.contract import FieldDep, CodeEffect, CodePayload, Contract, OutputShape, OutputShapeKind, StaticContract
+from ast_nodes.nodes import node_to_config_dict
+from jscode.contract import (
+    CodeEffect,
+    CodePayload,
+    Contract,
+    FieldDep,
+    OutputShape,
+    OutputShapeKind,
+    StaticContract,
+)
 from type_system.datatype import DataType
 from type_system.typeinfo import TypeInfo
 

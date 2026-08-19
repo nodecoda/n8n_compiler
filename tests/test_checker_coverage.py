@@ -6,8 +6,8 @@ WorkflowValidationError 等）用真实工作流 dict 难以精确构造（类�
 """
 import unittest
 
-from ast_nodes.connection import Connection
 from ast_nodes.configs import N8NErrorPolicy
+from ast_nodes.connection import Connection
 from ast_nodes.node_decls import CodeNode, ExitNode, SetNode, TriggerNode
 from ast_nodes.node_type import EXIT_NODE_KEY
 from ast_nodes.nodes import WorkflowAST
@@ -19,7 +19,7 @@ from checker.validator import (
     validate_references,
     validate_workflow,
 )
-from code.contract import CodeEffect, CodePayload, Contract, OutputShape, StaticContract
+from jscode.contract import CodeEffect, CodePayload, Contract, OutputShape, StaticContract
 from scope.symbol_table import SymbolTable
 from type_system.typeinfo import TypeInfo
 from values.reference import FieldInfo, Reference, Source

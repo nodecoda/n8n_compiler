@@ -7,10 +7,10 @@ import sys
 from pathlib import Path
 
 from checker.validator import WorkflowValidationError, validate_workflow
-from code.js_parser import JSInfraError
 from compiler.workflow import compile_ast
-from parser.workflow import parse_workflow
+from jscode.js_parser import JSInfraError
 from parser.node_adaptors import UnsupportedSourceError
+from parser.workflow import parse_workflow
 from typed_ir import reject_non_finite
 
 
