@@ -19,6 +19,7 @@ from tests.helpers import (
     manual_trigger_node,
     mini_webhook_workflow,
     rag_fixture,
+    require_n8n_repo,
     set_node,
     switch_workflow,
 )
@@ -233,6 +234,7 @@ class TestRoundTrip(unittest.TestCase):
         back = decompile_to_workflow(ir)
         uuid_mod.UUID(back["id"])  # 非空且是合法 UUID，否则抛 ValueError
 
+    @require_n8n_repo
     def test_ai_edges_preserved_round_trip(self):
         # P1-1c（v4）/ P2-3（v5）：ai_* 子连接必须 round-trip 守恒——v1 静默
         # 丢弃（3->0），v2 携带还原后不得丢失。P2-3 起断言升级为多集五元组
