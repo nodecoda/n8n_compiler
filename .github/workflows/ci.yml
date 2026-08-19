@@ -16,22 +16,22 @@ jobs:
       matrix:
         python: ["3.10", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           cache: pip
 
       - name: Set up Node (acorn bridge)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Sparse-checkout n8n test fixtures
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: n8n-io/n8n
           path: n8n
